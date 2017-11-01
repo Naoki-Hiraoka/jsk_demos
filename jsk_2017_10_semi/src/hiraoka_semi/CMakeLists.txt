@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 2.8.3)
-project(jsk_2017_10_semi)
+project(hiraoka_semi)
 
 ## Compile as C++11, supported in ROS Kinetic and newer
 # add_compile_options(-std=c++11)
@@ -8,9 +8,8 @@ project(jsk_2017_10_semi)
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS
-  fetcheus
-  jsk_maps
-  pr2eus
+  cv_bridge
+  image_transport
 )
 
 ## System dependencies are found with CMake's conventions
@@ -98,14 +97,14 @@ find_package(catkin REQUIRED COMPONENTS
 ###################################
 ## The catkin_package macro generates cmake config files for your package
 ## Declare things to be passed to dependent projects
-## INCLUDE_DIRS: uncomment this if you package contains header files
+## INCLUDE_DIRS: uncomment this if your package contains header files
 ## LIBRARIES: libraries you create in this project that dependent projects also need
 ## CATKIN_DEPENDS: catkin_packages dependent projects also need
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
 #  INCLUDE_DIRS include
-#  LIBRARIES jsk_2017_10_semi
-#  CATKIN_DEPENDS fetcheus jsk_maps pr2eus
+#  LIBRARIES hiraoka_semi
+#  CATKIN_DEPENDS cv_bridge image_transport
 #  DEPENDS system_lib
 )
 
@@ -122,7 +121,7 @@ include_directories(
 
 ## Declare a C++ library
 # add_library(${PROJECT_NAME}
-#   src/${PROJECT_NAME}/jsk_2017_10_semi.cpp
+#   src/${PROJECT_NAME}/hiraoka_semi.cpp
 # )
 
 ## Add cmake target dependencies of the library
@@ -133,7 +132,11 @@ include_directories(
 ## Declare a C++ executable
 ## With catkin_make all packages are built within a single CMake context
 ## The recommended prefix ensures that target names across packages don't collide
-# add_executable(${PROJECT_NAME}_node src/jsk_2017_10_semi_node.cpp)
+# add_executable(${PROJECT_NAME}_node src/hiraoka_semi_node.cpp)
+
+add_definitions ("-std=c++14")
+add_executable(controller src/controller.cpp)
+target_link_libraries(controller ${catkin_LIBRARIES})
 
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
@@ -190,7 +193,7 @@ include_directories(
 #############
 
 ## Add gtest based cpp test target and link libraries
-# catkin_add_gtest(${PROJECT_NAME}-test test/test_jsk_2017_10_semi.cpp)
+# catkin_add_gtest(${PROJECT_NAME}-test test/test_hiraoka_semi.cpp)
 # if(TARGET ${PROJECT_NAME}-test)
 #   target_link_libraries(${PROJECT_NAME}-test ${PROJECT_NAME})
 # endif()
