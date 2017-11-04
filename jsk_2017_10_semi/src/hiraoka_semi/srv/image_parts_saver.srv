@@ -1,0 +1,5 @@
+string file_name
+string format_name
+opencv_apps/RotatedRect[] parts
+---
+string[] names

@@ -8,8 +8,14 @@ project(hiraoka_semi)
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS
+  roscpp
+  rospy
+  message_generation
+  std_msgs
+  geometry_msgs
   cv_bridge
   image_transport
+  opencv_apps
 )
 
 ## System dependencies are found with CMake's conventions
@@ -59,6 +65,12 @@ find_package(catkin REQUIRED COMPONENTS
 #   Service2.srv
 # )
 
+add_service_files(
+  FILES
+  change_of_notice_board.srv
+  image_parts_saver.srv
+  )
+
 ## Generate actions in the 'action' folder
 # add_action_files(
 #   FILES
@@ -71,6 +83,13 @@ find_package(catkin REQUIRED COMPONENTS
 #   DEPENDENCIES
 #   std_msgs  # Or other packages containing msgs
 # )
+
+generate_messages(
+  DEPENDENCIES
+  std_msgs
+  geometry_msgs
+  opencv_apps
+  )
 
 ################################################
 ## Declare ROS dynamic reconfigure parameters ##
@@ -137,6 +156,12 @@ include_directories(
 add_definitions ("-std=c++14")
 add_executable(controller src/controller.cpp)
 target_link_libraries(controller ${catkin_LIBRARIES})
+
+add_executable(change_of_notice_board src/change_of_notice_board.cpp)
+target_link_libraries(change_of_notice_board ${catkin_LIBRARIES})
+
+add_executable(image_parts_saver src/image_parts_saver.cpp)
+target_link_libraries(image_parts_saver ${catkin_LIBRARIES})
 
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
