@@ -12,7 +12,7 @@
 (send *panel* :move-to (make-coords :pos #F(2500 -26000 31000)) :world)
 (send *panel* :set-color :green)
 
-(objects (list *pr2* *scene* ppanel*))
+(objects (list *pr2* *scene* *panel*))
 (send *pr2* :init-pose)
 (send *pr2* :move-to (send (send *scene* :spot "init-spot") :worldcoords) :world)
 (send *irtviewer* :look-all *pr2*)

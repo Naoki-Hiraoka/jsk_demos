@@ -13,8 +13,10 @@
 using namespace cv;
 using namespace std;
 
-int thresh = 50, N = 5;
-
+int thresh = 50;
+int N = 5;
+//int N=20;
+  
 // helper function:
 // finds a cosine of angle between vectors
 // from pt0->pt1 and from pt0->pt2
@@ -42,7 +44,8 @@ static void findSquares( const Mat& image, vector<vector<Point> >& squares )
 
   // blur will enhance edge detection
   Mat timg(image);
-  medianBlur(image, timg, 9);
+  //medianBlur(image, timg, 9);
+  medianBlur(image, timg, 3);
   Mat gray0(timg.size(), CV_8U), gray;
 
   vector<vector<Point> > contours;
@@ -72,8 +75,9 @@ static void findSquares( const Mat& image, vector<vector<Point> >& squares )
 	      // apply threshold if l!=0:
 	      //     tgray(x,y) = gray(x,y) < (l+1)*255/N ? 255 : 0
 	      gray = gray0 >= (l+1)*255/N;
+	      //adaptiveThreshold(gray0,gray,255,ADAPTIVE_THRESH_MEAN_C,THRESH_BINARY,1+2*l,0);
 	    }
-
+	  
 	  // find contours and store them all as a list
 	  findContours(gray, contours, RETR_LIST, CHAIN_APPROX_SIMPLE);
 

@@ -7,10 +7,11 @@
 bool is_like(std::vector<cv::Point>& before,std::vector<cv::Point>& after){
   //afterの面積　と、　beforeとafterの積の図形の面積　の比をみる
   double area_after = cv::contourArea(after);
+  double area_before = cv::contourArea(before);
   std::vector<cv::Point2f> intersection{};
   if(cv::rotatedRectangleIntersection(cv::minAreaRect(before),cv::minAreaRect(after),intersection)){
     double area_sum = cv::contourArea(intersection);
-    if(area_sum/area_after>0.5) return true;
+    if(area_sum/area_after>0.3||area_sum/area_before>0.3) return true;
   }
   return false;
 }
@@ -64,7 +65,7 @@ std::vector<std::vector<cv::Point>> compare_squares(std::vector<std::vector<cv::
   std::vector<std::vector<cv::Point>> result{};
   for(auto& contour_a:after){
     bool new_contour = true;
-    for(auto contour_b:before){
+    for(auto& contour_b:before){
       if(is_like(contour_a,contour_b))
 	new_contour=false;
     }
@@ -76,7 +77,6 @@ std::vector<std::vector<cv::Point>> compare_squares(std::vector<std::vector<cv::
 bool detect_change(hiraoka_semi::change_of_notice_board::Request  &req,
 		   hiraoka_semi::change_of_notice_board::Response &res)
 {
-  ROS_INFO("request: x=%s, y=%s", req.before.c_str(), req.after.c_str());
   cv::Mat before_img = cv::imread(req.before);
   cv::Mat after_img = cv::imread(req.after);
   /*
@@ -99,13 +99,27 @@ bool detect_change(hiraoka_semi::change_of_notice_board::Request  &req,
   reduce_squares(before_squares,before_squares);
   reduce_squares(after_squares,after_squares);
 
+  cv::namedWindow("before");
+  cv::namedWindow("after");
+  //drawSquares(before_img,before_squares,"before");
+  //drawSquares(after_img,after_squares,"after");
+  for(auto& square:before_squares){
+    Mat temp=before_img.clone();
+    drawContours(temp,vector<vector<Point>>{square},-1,Scalar{255,0,0});
+    imshow("before",temp);
+    waitKey(1000);
+  }
+  
   //compare square
   std::vector<std::vector<cv::Point>> result_squares=compare_squares(before_squares,after_squares);
 
   cv::namedWindow("changes");
   drawSquares(after_img,result_squares,"changes");
-  cv::waitKey(0);
+  cv::waitKey(1000);
   cv::destroyWindow("changes");
+
+  cv::destroyWindow("before");
+  cv::destroyWindow("after");
   
   res.changes.clear();
   for(auto& square: result_squares){
