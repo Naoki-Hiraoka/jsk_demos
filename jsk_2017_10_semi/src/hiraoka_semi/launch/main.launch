@@ -6,7 +6,10 @@
 	      <param name="__name" type="string" value="my_image_saver"/>
 	</node>
 
-	<node pkg="hiraoka_semi" type="change_of_notice_board" name="change_of_notice_board"/>
+	<!--node pkg="hiraoka_semi" type="change_of_notice_board" name="change_of_notice_board"/-->
+
+	<include file="$(find hiraoka_semi)/launch/detect_change.launch" />
+
 	<node pkg="hiraoka_semi" type="image_parts_saver" name="image_parts_saver"/>
 
 	<node pkg="hiraoka_semi" type="main.l" name="main">

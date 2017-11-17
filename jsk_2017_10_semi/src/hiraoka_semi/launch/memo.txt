@@ -1,0 +1,33 @@
+rostopic pub -1 /image_time_diff/start std_msgs/Header '{stamp: now}'
+
+import rospy
+
+import dynamic_reconfigure.client
+
+def callback(config):
+    rospy.loginfo("sending")
+
+if __name__ == "__main__":
+    rospy.init_node("dynamic_client")
+
+    rospy.wait_for_service("/image_publisher/set_parameters")
+    print "service found"
+    client = dynamic_reconfigure.client.Client("/image_publisher", timeout=30, \
+config_callback=callback)
+    print "client"                                                          
+    client.update_configuration({"file_name":"/home/mech-user/semi_ws/src/jsk_d\
+emos/jsk_2017_10_semi/src/hiraoka_semi/image/camera1.jpeg"})
+    r.sleep()                            
+
+(ros::load-ros-manifest "dynamic_reconfigure")
+(ros::wait-for-service "/image_publisher/set_parameters")
+(setq client (instance dynamic_reconfigure::ReconfigureRequest :init))
+(send client :config :strs (list (instance dynamic_reconfigure::StrParameter :init :name "file_name" :value "/home/mech-user/semi_ws/src/jsk_demos/jsk_2017_10_semi/src/hiraoka_semi/image/camera1.jpeg")))
+(ros::service-call "/image_publisher/set_parameters" client)
+
+(ros::advertise "/image_time_diff/start" std_msgs::Header 1)
+(setq msg (instance std_msgs::Header :init))
+(send msg :stamp (ros::time-now))
+(ros::publish "/image_time_diff/start" msg)
+
+mask_image_to_rect/output に、polygon points [0] [1] に左上、右下の点

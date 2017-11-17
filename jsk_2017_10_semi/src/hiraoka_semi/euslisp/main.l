@@ -2,6 +2,7 @@
 
 (ros::load-ros-manifest "roseus")
 (ros::load-ros-manifest "hiraoka_semi")
+(ros::load-ros-manifest "dynamic_reconfigure")
 (load "package://hiraoka_semi/euslisp/init.l")
 (ros::roseus "main")
 
@@ -38,12 +39,30 @@
 ;;2つの写真の差分を計算する
 (setq file_name (ros::get-param "~file_name"))
 (setq format_name (ros::get-param "~format_name"))
-(setq req (instance hiraoka_semi::change_of_notice_boardRequest :init))
-(send req :before (concatenate string file_name (string photo-num-before) format_name))
-(send req :after (concatenate string file_name (string photo-num-after) format_name))
-(setq res (ros::service-call "change_of_notice_board" req))
+;; (setq req (instance hiraoka_semi::change_of_notice_boardRequest :init))
+;; (send req :before (concatenate string file_name (string photo-num-before) format_name))
+;; (send req :after (concatenate string file_name (string photo-num-after) format_name))
+;; (setq res (ros::service-call "change_of_notice_board" req))
+;前の画像を送信する
+(ros::wait-for-service "/image_publisher/set_parameters")
+(setq dynamic_msg (instance dynamic_reconfigure::ReconfigureRequest :init))
+(send dynamic_msg :config :strs (list (instance dynamic_reconfigure::StrParameter :init :name "file_name" :value (concatenate string file_name (string photo-num-before) format_name))))
+(ros::service-call "/image_publisher/set_parameters" dynamic_msg)
+;;今の画像からの差分を計算せよと命令
+(ros::advertise "/image_time_diff/start" std_msgs::Header 1)
+(setq msg (instance std_msgs::Header :init))
+(send msg :stamp (ros::time-now))
+(ros::publish "/image_time_diff/start" msg)
+;;後の画像を送信する
+(send dynamic_msg :config :strs (list (instance dynamic_reconfigure::StrParameter :init :name "file_name" :value (concatenate string file_name (string photo-num-after) format_name))))
+(ros::service-call "/image_publisher/set_parameters" dynamic_msg)
 
-;;差分を保存する
+(setq newpaper (instance opencv_apps::RotatedRect :init)) 
+(defun rect_image-cb (msg)
+;;ここから  (send newpaper :cenner :x 
+(ros::subscribe "/mask_image_to_rect/output" geometry_msgs/PolygonStamped #')
+
+;;差分を保存する(要編集)
 ;;ターゲットの位置まで近づいて、新たに写真を撮ってとできればいいなあ
 (setq req (instance hiraoka_semi::image_parts_saverRequest :init))
 (send req :file_name file_name)
