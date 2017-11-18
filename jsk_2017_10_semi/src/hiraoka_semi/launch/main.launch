@@ -1,8 +1,15 @@
 <launch>
+	<node pkg="usb_cam" type="usb_cam_node" name="usb_cam"/>
+
+	<node pkg="image_view" type="image_view" name="image_view_bese">
+	      <remap from="image" to="usb_cam/image_raw"/>
+	</node>
+
 	<node pkg="image_view" type="image_saver" name="my_image_saver">
 	      <param name="~save_all_image" type="bool" value="false"/>
 	      <param name="~filename_format" type="string" value="/home/mech-user/semi_ws/src/jsk_demos/jsk_2017_10_semi/src/hiraoka_semi/image/head_img%i.jpg"/>
-	      <remap from="image" to="/kinect_head/rgb/image_rect_color"/>
+	      <!--remap from="image" to="/kinect_head/rgb/image_rect_color"/-->
+	      <remap from="image" to="usb_cam/image_raw"/>
 	      <param name="__name" type="string" value="my_image_saver"/>
 	</node>
 

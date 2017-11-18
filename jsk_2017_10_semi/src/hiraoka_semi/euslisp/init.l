@@ -13,7 +13,7 @@
 (send *panel* :set-color :green)
 
 (objects (list *pr2* *scene* *panel*))
-(send *pr2* :init-pose)
+;;(send *pr2* :init-pose)
 (send *pr2* :move-to (send (send *scene* :spot "init-spot") :worldcoords) :world)
 (send *irtviewer* :look-all *pr2*)
 (send *ri* :angle-vector (send *pr2* :angle-vector) 5000)

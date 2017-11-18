@@ -1,7 +1,7 @@
 <launch>
   <node name="image_publisher" pkg="jsk_perception" type="image_publisher.py">
     <rosparam subst_value="true">
-    file_name: $(find hiraoka_semi)/image/camera0.jpeg
+    file_name: $(find hiraoka_semi)/image/head_img0.jpg
     rate: 30
     </rosparam>
   </node>
@@ -17,13 +17,14 @@
       <remap from="~input/hue" to="/hsv_decomposer/output/hue" />
       <remap from="~input/saturation" to="/hsv_decomposer/output/saturation" />
   </node>
-  <node pkg="image_view" type="image_view" name="hue_view" >
-      <remap from="image" to="hsv_decomposer/output/hue" />
-  </node>
   
-  <node pkg="image_view" type="image_view" name="diff_view" >
-      <remap from="image" to="image_time_diff/output/diff_image" />
-  </node>
+  <!-- <node pkg="image_view" type="image_view" name="hue_view" > -->
+  <!--     <remap from="image" to="hsv_decomposer/output/hue" /> -->
+  <!-- </node> -->
+  
+  <!-- <node pkg="image_view" type="image_view" name="diff_view" > -->
+  <!--     <remap from="image" to="image_time_diff/output/diff_image" /> -->
+  <!-- </node> -->
 
   <node name="hsv_color_filter" pkg="opencv_apps" type="hsv_color_filter">
     <remap from="image" to="image_time_diff/output/diff_image" />
@@ -39,31 +40,31 @@
   </rosparam>
   </node>
 
-  <node name="image_view_color_filtering" pkg="image_view" type="image_view">
-    <remap from="image" to="hsv_color_filter/image" />
-  </node>
+  <!-- <node name="image_view_color_filtering" pkg="image_view" type="image_view"> -->
+  <!--   <remap from="image" to="hsv_color_filter/image" /> -->
+  <!-- </node> -->
 
   <node name="bounding_object_mask_image" pkg="jsk_perception" type="bounding_object_mask_image">
     <remap from="~input" to="hsv_color_filter/image" />
   </node>
 
-  <node name="image_view_bounding_object_mask_image" pkg="image_view" type="image_view">
-    <remap from="image" to="bounding_object_mask_image/output" />
-  </node>
+  <!-- <node name="image_view_bounding_object_mask_image" pkg="image_view" type="image_view"> -->
+  <!--   <remap from="image" to="bounding_object_mask_image/output" /> -->
+  <!-- </node> -->
 
-<node name="mask_sample" pkg="jsk_perception" type="apply_mask_image" respawn="true">
-    <remap from="~input" to="image_publisher/output" />
-    <remap from="~input/mask" to="bounding_object_mask_image/output" />
-  <rosparam>
-    clip: false
-    approximate_sync: true
-    queue_size: 100
-  </rosparam>
-  </node>
+<!-- <node name="mask_sample" pkg="jsk_perception" type="apply_mask_image" respawn="true"> -->
+<!--     <remap from="~input" to="image_publisher/output" /> -->
+<!--     <remap from="~input/mask" to="bounding_object_mask_image/output" /> -->
+<!--   <rosparam> -->
+<!--     clip: false -->
+<!--     approximate_sync: true -->
+<!--     queue_size: 100 -->
+<!--   </rosparam> -->
+<!--   </node> -->
 
-  <node name="mask_sample_image" pkg="image_view" type="image_view">
-    <remap from="image" to="mask_sample/output" />
-  </node>
+<!--   <node name="mask_sample_image" pkg="image_view" type="image_view"> -->
+<!--     <remap from="image" to="mask_sample/output" /> -->
+<!--   </node> -->
 
   <node name="bounding_rect_mask_image" pkg="jsk_perception" type="bounding_rect_mask_image">
     <remap from="~input" to="bounding_object_mask_image/output" />
