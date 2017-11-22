@@ -163,6 +163,9 @@ target_link_libraries(change_of_notice_board ${catkin_LIBRARIES})
 add_executable(image_parts_saver src/image_parts_saver.cpp)
 target_link_libraries(image_parts_saver ${catkin_LIBRARIES})
 
+add_executable(gaussian src/gaussian.cpp)
+target_link_libraries(gaussian ${catkin_LIBRARIES})
+
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
 ## target back to the shorter version for ease of user use

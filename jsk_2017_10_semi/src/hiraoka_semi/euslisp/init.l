@@ -17,4 +17,5 @@
 (send *pr2* :move-to (send (send *scene* :spot "init-spot") :worldcoords) :world)
 (send *irtviewer* :look-all *pr2*)
 (send *ri* :angle-vector (send *pr2* :angle-vector) 5000)
-(send *ri* :move-to (send *pr2* :worldcoords) :frame-id "eng2")
+
+;; (send *ri* :move-to (send *pr2* :worldcoords) :frame-id "eng2")

@@ -9,14 +9,16 @@
 (setq photo-num 0);写真を撮った回数
 
 ;; ;;掲示板の前まで移動
-(send *pr2* :move-to (send (send *scene* :spot "/eng2/7f/before-elevator") :worldcoords) :world)
-(send *irtviewer* :look-all *pr2*)
-(x::window-main-one)
-(send *ri* :move-to (send *pr2* :worldcoords) :frame-id "eng2")
-(send *pr2* :move-to (make-coords :pos (send *pr2* :worldpos) :rpy (float-vector pi/2 0 0)) :world)
-(send *irtviewer* :look-all *pr2*)
-(x::window-main-one)
-(send *ri* :move-to (send *pr2* :worldcoords) :frame-id "eng2")
+
+;; (send *pr2* :move-to (send (send *scene* :spot "/eng2/7f/before-elevator") :worldcoords) :world)
+;; (send *irtviewer* :look-all *pr2*)
+;; (x::window-main-one)
+;; (send *ri* :move-to (send *pr2* :worldcoords) :frame-id "eng2")
+;; (send *pr2* :move-to (make-coords :pos (send *pr2* :worldpos) :rpy (float-vector pi/2 0 0)) :world)
+;; (send *irtviewer* :look-all *pr2*)
+;; (x::window-main-one)
+;; (send *ri* :move-to (send *pr2* :worldcoords) :frame-id "eng2")
+
 
 ;;ココでカメラが昨日と同じ位置に来るようにうまく調整したい
 
@@ -32,10 +34,7 @@
 ;;写真を送信
 (setq file_name (ros::get-param "~file_name"))
 (setq format_name (ros::get-param "~format_name"))
-;; (setq req (instance hiraoka_semi::change_of_notice_boardRequest :init))
-;; (send req :before (concatenate string file_name (string photo-num-before) format_name))
-;; (send req :after (concatenate string file_name (string photo-num-after) format_name))
-;; (setq res (ros::service-call "change_of_notice_board" req))
+
 ;;前の画像を送信する
 (ros::wait-for-service "/image_publisher/set_parameters")
 (setq dynamic_msg (instance dynamic_reconfigure::ReconfigureRequest :init))
@@ -66,11 +65,15 @@
 (ros::advertise "/image_time_diff/start" std_msgs::Header 1)
 (setq msg (instance std_msgs::Header :init))
 (send msg :stamp (ros::time-now))
+
+(while (zerop (ros::get-num-subscribers "/image_time_diff/start"))
+    (ros::sleep))
+
 (ros::publish "/image_time_diff/start" msg)
 (setq time-target (ros::time-now))
 (while (ros::time< time-now time-target)
   (ros::spin-once)
-  (ros::publish "/image_time_diff/start" msg);;最初の一回だと反応しないみたい
+  ;;(ros::publish "/image_time_diff/start" msg);;最初の一回だと反応しないみたい
   (ros::sleep)
   )
 (ros::unsubscribe "/image_time_diff/output/diff_image")
@@ -114,11 +117,12 @@
 (ros::service-call "image_parts_saver" req)
 
 ;;帰ってくる
-(send *pr2* :init-pose)
-(send *pr2* :move-to (send (send *scene* :spot "init-spot") :worldcoords) :world)
-(send *irtviewer* :look-all *pr2*)
-(x::window-main-one)
-(send *ri* :angle-vector (send *pr2* :angle-vector) 5000)
-(send *ri* :move-to (send *pr2* :worldcoords) :frame-id "eng2")
+;; (send *pr2* :move-to (send (send *scene* :spot "init-spot") :worldcoords) :world)
+;; (send *irtviewer* :look-all *pr2*)
+;; (x::window-main-one)
+;; (send *ri* :move-to (send *pr2* :worldcoords) :frame-id "eng2")
+
+(do-until-key
+ (ros::sleep))
 
 (exit)

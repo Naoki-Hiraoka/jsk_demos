@@ -5,7 +5,9 @@
 
 
 (ros::rate 10)
-(while (not (ros::get-topic-publisher "/image_time_diff/start"))
+;;(while (not (ros::get-topic-publisher "/image_time_diff/start")) (ros::sleep))
+
+(while (zerop (ros::get-num-subscribers "/image_time_diff/start"))
   (ros::sleep))
 
 (setq i 0)
