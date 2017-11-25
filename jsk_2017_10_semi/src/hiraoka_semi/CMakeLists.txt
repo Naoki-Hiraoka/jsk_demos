@@ -16,6 +16,7 @@ find_package(catkin REQUIRED COMPONENTS
   cv_bridge
   image_transport
   opencv_apps
+  dynamic_reconfigure
 )
 
 ## System dependencies are found with CMake's conventions
@@ -69,6 +70,8 @@ add_service_files(
   FILES
   change_of_notice_board.srv
   image_parts_saver.srv
+  image_part_saver.srv
+  video_recorder.srv
   )
 
 ## Generate actions in the 'action' folder
@@ -106,10 +109,14 @@ generate_messages(
 ##     and list every .cfg file to be processed
 
 ## Generate dynamic reconfigure parameters in the 'cfg' folder
-# generate_dynamic_reconfigure_options(
+#generate_dynamic_reconfigure_options(
 #   cfg/DynReconf1.cfg
 #   cfg/DynReconf2.cfg
 # )
+
+generate_dynamic_reconfigure_options(
+   cfg/background_subtractor.cfg
+ )
 
 ###################################
 ## catkin specific configuration ##
@@ -165,6 +172,15 @@ target_link_libraries(image_parts_saver ${catkin_LIBRARIES})
 
 add_executable(gaussian src/gaussian.cpp)
 target_link_libraries(gaussian ${catkin_LIBRARIES})
+
+add_executable(video_recorder src/video_recorder.cpp)
+target_link_libraries(video_recorder ${catkin_LIBRARIES})
+
+add_executable(background_subtractor src/background_subtractor.cpp)
+target_link_libraries(background_subtractor ${catkin_LIBRARIES})
+
+add_executable(image_part_saver src/image_part_saver.cpp)
+target_link_libraries(image_part_saver ${catkin_LIBRARIES})
 
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the

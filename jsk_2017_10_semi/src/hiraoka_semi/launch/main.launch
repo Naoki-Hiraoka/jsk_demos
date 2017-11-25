@@ -1,28 +1,24 @@
 <launch>
-	<!-- <node pkg="usb_cam" type="usb_cam_node" name="usb_cam"/> -->
+	<node pkg="usb_cam" type="usb_cam_node" name="usb_cam"/>
 
 	<node pkg="image_view" type="image_view" name="image_view_camera">
-	  <!-- <remap from="image" to="usb_cam/image_raw"/> -->
-	  <remap from="image" to="/kinect_head/rgb/image_rect_color"/>
+	  <remap from="image" to="usb_cam/image_raw"/>
+	  <!-- <remap from="image" to="/kinect_head/rgb/image_rect_color"/> -->
 	</node>
 
-	<node pkg="image_view" type="image_saver" name="my_image_saver">
-	      <param name="~save_all_image" type="bool" value="false"/>
-	      <param name="~filename_format" type="string" value="/home/mech-user/semi_ws/src/jsk_demos/jsk_2017_10_semi/src/hiraoka_semi/image/head_img%i.jpg"/>
-	      <remap from="image" to="/kinect_head/rgb/image_rect_color"/>
-	      <!-- <remap from="image" to="usb_cam/image_raw"/> -->
-	      <param name="__name" type="string" value="my_image_saver"/>
-	</node>
-
-	<!--node pkg="hiraoka_semi" type="change_of_notice_board" name="change_of_notice_board"/-->
+	<node pkg="hiraoka_semi" type="video_recorder" name="video_recorder"/>
 
 	<include file="$(find hiraoka_semi)/launch/detect_change.launch" />
 
-	<node pkg="hiraoka_semi" type="image_parts_saver" name="image_parts_saver"/>
+	<node pkg="hiraoka_semi" type="image_part_saver" name="image_part_saver">
+	  <remap from="image" to="rect_mask_sample/output"/>
+	</node>
 
 	<node pkg="hiraoka_semi" type="main.l" name="main">
-	      <param name="~file_name" type="string" value="/home/mech-user/semi_ws/src/jsk_demos/jsk_2017_10_semi/src/hiraoka_semi/image/head_img"/>
-	      <param name="~format_name" type="string" value=".jpg"/>
+	  <param name="~file_name" type="string" value="/home/mech-user/semi_ws/src/jsk_demos/jsk_2017_10_semi/src/hiraoka_semi/image/head_video.avi"/>
+	  <param name="~save_name" type="string" value="/home/mech-user/semi_ws/src/jsk_demos/jsk_2017_10_semi/src/hiraoka_semi/image/change.jpg"/>
+	  <!-- <param name="~topic_name" type="string" value="/kinect_head/rgb/image_rect_color"/> -->
+	  <param name="~topic_name" type="string" value="usb_cam/image_raw"/>
 	</node>
 </launch>
 

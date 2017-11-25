@@ -3,7 +3,7 @@
 #include <opencv2/opencv.hpp>
 #include<cmath>
 
-bool image_parts_save(hiraoka_semi::image_parts_saver::Request  &req,
+bool image_part_save(hiraoka_semi::image_parts_saver::Request  &req,
 		   hiraoka_semi::image_parts_saver::Response &res)
 {
   ROS_INFO("request: image=%s, parts_num=%ld", (req.file_name+req.format_name).c_str(), req.parts.size());
@@ -40,7 +40,7 @@ int main(int argc, char **argv)
 {
   ros::init(argc, argv, "image_parts_saver");
   ros::NodeHandle n;
-  ros::ServiceServer service = n.advertiseService("image_parts_saver", image_parts_save);
+  ros::ServiceServer service = n.advertiseService("image_parts_saver", image_part_save);
   ROS_INFO("Ready to save image parts");
   ros::spin();
 

@@ -1,0 +1,6 @@
+string topicname
+string filename
+string formatname
+bool start
+bool stop
+---
