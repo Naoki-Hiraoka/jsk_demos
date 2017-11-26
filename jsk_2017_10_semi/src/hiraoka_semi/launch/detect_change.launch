@@ -1,4 +1,6 @@
-<launch>  
+<launch>
+  <arg name="camera_topic" />
+  
   <node pkg="hiraoka_semi" type="background_subtractor" name="background_subtractor"/>
   
   <node pkg="image_view" type="image_view" name="background_subtractor_view" >
@@ -14,8 +16,7 @@
   </node>
 	      
   <node name="rect_mask_sample" pkg="jsk_perception" type="apply_mask_image" respawn="true">
-    <remap from="~input" to="usb_cam/image_raw"/>
-    <!-- <remap from="~input" to="/kinect_head/rgb/image_rect_color"/> -->
+    <remap from="~input" to="$(arg camera_topic)"/>
     <remap from="~input/mask" to="bounding_rect_mask_image/output" />
     <rosparam>
       clip: false

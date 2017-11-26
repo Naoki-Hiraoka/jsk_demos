@@ -24,6 +24,7 @@ public:
     ROS_INFO("image cb start");
     cv_bridge::CvImagePtr in_ptr=cv_bridge::toCvCopy(msg,msg->encoding);
     Mat img=in_ptr->image;
+    cvtColor(img,img,COLOR_BGR2RGB);
     Mat mask{};
     ROS_INFO("image cb if");
     if(background==nullptr)return;
@@ -54,9 +55,10 @@ public:
       background = createBackgroundSubtractorMOG2(flame_count,16,false);
       Mat img{};
       Mat mask{};
+
       while(video.read(img)){
 	background->apply(img,mask);
-      }
+      }      
     }
     if(!config.topicname.empty()){
       img_sub_.shutdown();
@@ -78,6 +80,7 @@ int main (int argc,char** argv){
   ros::init(argc,argv,"background_subtractor");
   ImageConverter ic{};
   ros::Rate loop_rate(30);
+  
   while(ros::ok()){
     ros::spinOnce();
     loop_rate.sleep();
