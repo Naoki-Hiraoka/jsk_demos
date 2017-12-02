@@ -14,7 +14,6 @@ class ImageConverter{
   image_transport::ImageTransport it_;
   image_transport::Subscriber img_sub_;
   image_transport::Publisher img_pub_;
-  
   Ptr<BackgroundSubtractorMOG2> background{};
 
   dynamic_reconfigure::Server<hiraoka_semi::background_subtractorConfig> server;
@@ -22,9 +21,9 @@ class ImageConverter{
 public:  
   void image_callback(const sensor_msgs::ImageConstPtr &msg){
     ROS_INFO("image cb start");
-    cv_bridge::CvImagePtr in_ptr=cv_bridge::toCvCopy(msg,msg->encoding);
+    cv_bridge::CvImagePtr in_ptr=cv_bridge::toCvCopy(msg,"bgr8");
     Mat img=in_ptr->image;
-    cvtColor(img,img,COLOR_BGR2RGB);
+    //    if(debug)cvtColor(img,img,COLOR_BGR2RGB);//usbcameraの場合はコメントアウトを外すこと
     Mat mask{};
     ROS_INFO("image cb if");
     if(background==nullptr)return;

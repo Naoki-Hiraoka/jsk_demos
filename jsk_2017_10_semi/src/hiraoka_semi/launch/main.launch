@@ -4,6 +4,7 @@
     
     <arg name="camera_topic" value="/kinect_head/rgb/image_rect_color" unless="$(arg debug)"/>
     <arg name="camera_topic" value="usb_cam/image_raw" if="$(arg debug)"/>
+    <!-- <arg name="camera_topic" value="/kinect_head/rgb/image_rect_color"/> -->
     <node pkg="usb_cam" type="usb_cam_node" name="usb_cam" if="$(arg debug)"/>
     
     <node pkg="image_view" type="image_view" name="image_view_camera">
@@ -14,18 +15,20 @@
     
     <include file="$(find hiraoka_semi)/launch/detect_change.launch" >
       <arg name="camera_topic" value="$(arg camera_topic)"/>
+      <arg name="debug" value="$(arg debug)"/>
     </include>
     
     <node pkg="hiraoka_semi" type="image_part_saver" name="image_part_saver">
       <remap from="image" to="rect_mask_sample/output"/>
     </node>
     
-    <node pkg="hiraoka_semi" type="main.l" name="main">
-      <param name="~file_name" type="string" value="$(find hiraoka_semi)/image/head_video.avi"/>
-      <param name="~save_name" type="string" value="$(find hiraoka_semi)/image/change.jpg"/>
-      <param name="~topic_name" type="string" value="$(arg camera_topic)"/>
-      <param name="~debug" type="bool" value="$(arg debug)"/>
-    </node>
+    <!-- <node pkg="hiraoka_semi" type="main.l" name="main"> -->
+    <!--   <param name="~file_name" type="string" value="$(find hiraoka_semi)/image/head_video.avi"/> -->
+    <!--   <param name="~save_name" type="string" value="$(find hiraoka_semi)/image/change.jpg"/> -->
+    <!--   <param name="~topic_name" type="string" value="$(arg camera_topic)"/> -->
+    <!--   <param name="~debug" type="bool" value="$(arg debug)"/> -->
+    <!-- </node> -->
+    <node pkg="hiraoka_semi" type="temp3.l" name="main"/>
   </group>
 </launch>
 

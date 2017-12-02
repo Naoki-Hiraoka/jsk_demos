@@ -1,0 +1,3 @@
+send :data nilしても、値が変わらない。bool型で困る
+head_camera とusb_camでBGRとRGBが逆で困った。
+pr2-interface.lで、相対パスでtopicを購読しているらしい。
