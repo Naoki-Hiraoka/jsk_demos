@@ -20,12 +20,10 @@ class ImageConverter{
   dynamic_reconfigure::Server<hiraoka_semi::background_subtractorConfig>::CallbackType f;
 public:  
   void image_callback(const sensor_msgs::ImageConstPtr &msg){
-    ROS_INFO("image cb start");
     cv_bridge::CvImagePtr in_ptr=cv_bridge::toCvCopy(msg,"bgr8");
     Mat img=in_ptr->image;
     //    if(debug)cvtColor(img,img,COLOR_BGR2RGB);//usbcameraの場合はコメントアウトを外すこと
     Mat mask{};
-    ROS_INFO("image cb if");
     if(background==nullptr)return;
     background->apply(img,mask,0);
     mask.convertTo(mask,CV_8UC1);
@@ -38,7 +36,6 @@ public:
     out_ptr->image=std::move(mask);
     sensor_msgs::ImageConstPtr outmsg= out_ptr->toImageMsg();
     img_pub_.publish(outmsg);
-    ROS_INFO("image cb end");
     return;
   }
   

@@ -72,6 +72,7 @@ add_service_files(
   image_parts_saver.srv
   image_part_saver.srv
   video_recorder.srv
+  tweet.srv
   )
 
 ## Generate actions in the 'action' folder
@@ -181,6 +182,9 @@ target_link_libraries(background_subtractor ${catkin_LIBRARIES})
 
 add_executable(image_part_saver src/image_part_saver.cpp)
 target_link_libraries(image_part_saver ${catkin_LIBRARIES})
+
+add_executable(tweet src/tweet.cpp)
+target_link_libraries(tweet ${catkin_LIBRARIES})
 
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the

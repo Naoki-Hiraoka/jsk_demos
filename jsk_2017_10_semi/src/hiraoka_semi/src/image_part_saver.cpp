@@ -17,7 +17,7 @@ class MyCvPkg{
   Mat img{};
   
   void imageCallback(const sensor_msgs::ImageConstPtr &msg){
-    img = cv_bridge::toCvCopy(msg,msg->encoding)->image;
+    img = cv_bridge::toCvCopy(msg,"bgr8")->image;
 
     return;
   }
