@@ -3,8 +3,6 @@
   <arg name="debug" default="false"/>
   
   <node pkg="hiraoka_semi" type="background_subtractor" name="background_subtractor"/>
-
-  <node pkg="hiraoka_semi" type="background_subtractor" name="background_subtractor_depth"/>
   
   <node pkg="image_view" type="image_view" name="background_subtractor_view" >
       <remap from="image" to="background_subtractor/output" />

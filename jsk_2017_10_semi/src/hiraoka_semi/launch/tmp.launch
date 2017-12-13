@@ -1,0 +1,3 @@
+<launch>
+  <node pkg="hiraoka_semi" type="background_subtractor" name="background_subtractor_depth"/>
+</launch>

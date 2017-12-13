@@ -25,7 +25,7 @@ class MyCvPkg{
   bool image_part_save(hiraoka_semi::image_part_saver::Request  &req,
 		       hiraoka_semi::image_part_saver::Response &res){
     ROS_INFO("request: file_name=%s, parts_num=%ld", req.file_name.c_str(), req.parts.size());
-    cvtColor(img,img,COLOR_BGR2RGB);
+    //cvtColor(img,img,COLOR_BGR2RGB);
     for(int i=0;i<1/*req.parts.size()*/;i++){
       auto part=req.parts[i];
       if(abs(part.angle) < 10/*deg?*/){

@@ -20,9 +20,10 @@ class ImageConverter{
   dynamic_reconfigure::Server<hiraoka_semi::background_subtractorConfig>::CallbackType f;
 public:  
   void image_callback(const sensor_msgs::ImageConstPtr &msg){
-    cv_bridge::CvImagePtr in_ptr=cv_bridge::toCvCopy(msg,"bgr8");
+    cv_bridge::CvImagePtr in_ptr;
+    if(msg->encoding=="bgr8"||msg->encoding=="rgb8")in_ptr=cv_bridge::toCvCopy(msg,"bgr8");
+    else in_ptr=cv_bridge::toCvCopy(msg);
     Mat img=in_ptr->image;
-    //    if(debug)cvtColor(img,img,COLOR_BGR2RGB);//usbcameraの場合はコメントアウトを外すこと
     Mat mask{};
     if(background==nullptr)return;
     background->apply(img,mask,0);

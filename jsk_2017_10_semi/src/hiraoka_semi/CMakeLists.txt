@@ -11,17 +11,18 @@ find_package(catkin REQUIRED COMPONENTS
   roscpp
   rospy
   message_generation
+  message_runtime
   std_msgs
   geometry_msgs
-  cv_bridge
-  image_transport
   opencv_apps
   dynamic_reconfigure
+  cv_bridge
+  image_transport
 )
 
 ## System dependencies are found with CMake's conventions
 # find_package(Boost REQUIRED COMPONENTS system)
-
+find_package(OpenCV REQUIRED)
 
 ## Uncomment this if the package has a setup.py. This macro ensures
 ## modules and global scripts declared therein get installed
@@ -142,8 +143,9 @@ catkin_package(
 ## Specify additional locations of header files
 ## Your package locations should be listed before other locations
 include_directories(
-# include
+  include
   ${catkin_INCLUDE_DIRS}
+  ${OpenCV_INCLUDE_DIRS}
 )
 
 ## Declare a C++ library
@@ -163,28 +165,31 @@ include_directories(
 
 add_definitions ("-std=c++14")
 add_executable(controller src/controller.cpp)
-target_link_libraries(controller ${catkin_LIBRARIES})
+target_link_libraries(controller ${catkin_LIBRARIES} ${OpenCV_LIBRARIES})
 
 add_executable(change_of_notice_board src/change_of_notice_board.cpp)
-target_link_libraries(change_of_notice_board ${catkin_LIBRARIES})
+target_link_libraries(change_of_notice_board ${catkin_LIBRARIES} ${OpenCV_LIBRARIES})
 
 add_executable(image_parts_saver src/image_parts_saver.cpp)
-target_link_libraries(image_parts_saver ${catkin_LIBRARIES})
+target_link_libraries(image_parts_saver ${catkin_LIBRARIES} ${OpenCV_LIBRARIES})
 
 add_executable(gaussian src/gaussian.cpp)
-target_link_libraries(gaussian ${catkin_LIBRARIES})
+target_link_libraries(gaussian ${catkin_LIBRARIES} ${OpenCV_LIBRARIES})
 
 add_executable(video_recorder src/video_recorder.cpp)
-target_link_libraries(video_recorder ${catkin_LIBRARIES})
+target_link_libraries(video_recorder ${catkin_LIBRARIES} ${OpenCV_LIBRARIES})
 
 add_executable(background_subtractor src/background_subtractor.cpp)
-target_link_libraries(background_subtractor ${catkin_LIBRARIES})
+target_link_libraries(background_subtractor ${catkin_LIBRARIES} ${OpenCV_LIBRARIES})
 
 add_executable(image_part_saver src/image_part_saver.cpp)
-target_link_libraries(image_part_saver ${catkin_LIBRARIES})
+target_link_libraries(image_part_saver ${catkin_LIBRARIES} ${OpenCV_LIBRARIES})
 
-add_executable(tweet src/tweet.cpp)
-target_link_libraries(tweet ${catkin_LIBRARIES})
+add_executable(encoding_changer src/encoding_changer.cpp)
+target_link_libraries(encoding_changer ${catkin_LIBRARIES} ${OpenCV_LIBRARIES})
+
+add_executable(myvideo_recorder src/myvideo_recorder.cpp)
+target_link_libraries(myvideo_recorder ${catkin_LIBRARIES} ${OpenCV_LIBRARIES})
 
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the

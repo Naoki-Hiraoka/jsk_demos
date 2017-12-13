@@ -1,6 +1,6 @@
 string topicname
 string filename
-string formatname
+string nodename
 bool start
 bool stop
 ---

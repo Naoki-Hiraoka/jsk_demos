@@ -35,7 +35,6 @@
 )
 
 (ros::rate 10)
-;;ココでカメラが昨日と同じ位置に来るようにうまく調整したい
 
 ;;動画を撮る
 (setq file_name (ros::get-param "~file_name"))

@@ -17,7 +17,8 @@ bool record(hiraoka_semi::video_recorder::Request  &req,
     message=string{"rosrun image_view video_recorder"};
     if(!req.topicname.empty())message+=string{" image:="}+req.topicname;
     if(!req.filename.empty())message+=string{" _filename:="}+req.filename;
-    message+=string{" __name:=recorder"};
+    if(!req.nodename.empty())message+=string{" __name:="}+req.nodename;
+    else message+=string{" __name:=recorder"};
     ROS_INFO("system: %s", message.c_str());
     thread t{system,message.c_str()};
     t.detach();
@@ -25,7 +26,8 @@ bool record(hiraoka_semi::video_recorder::Request  &req,
   }
   if(req.stop){
     message=string{"rosnode kill"};
-    message+=string{" recorder"};
+    if(!req.nodename.empty())message+=string{" "}+req.nodename;
+    else message+=string{" recorder"};
     ROS_INFO("system: %s", message.c_str());
     thread t{system,message.c_str()};
     t.detach();
