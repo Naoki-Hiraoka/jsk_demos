@@ -26,8 +26,23 @@ public:
     cv_bridge::CvImagePtr in_ptr=cv_bridge::toCvCopy(msg);
     Mat img;
     cvtColor(in_ptr->image,img,COLOR_GRAY2BGR);
+
+    if(!video.isOpened()){
+      
+      video.open(filename,
+		 cv::VideoWriter::fourcc(codec.c_str()[0],
+					 codec.c_str()[1],
+					 codec.c_str()[2],
+					 codec.c_str()[3]),
+		 fps,
+		 img.size(),
+		 true);
+      
+      namedWindow("camera");
+    }
     count++;
     ROS_INFO_STREAM("Recording frame " << count << "\x1b[1F");
+    cout<<img.cols<<" "<<img.rows<<endl;
     video<<(img);
     imshow("camera",img);
     cv::waitKey(3);
@@ -40,18 +55,6 @@ public:
     local_nh.param("fps", fps, 15);
     local_nh.param("codec", codec, std::string("MJPG"));
 
-    cv::Size size(640,480);
-    
-    video.open(filename,
-		   cv::VideoWriter::fourcc(codec.c_str()[0],
-					   codec.c_str()[1],
-					   codec.c_str()[2],
-					   codec.c_str()[3]),
-		   fps,
-		   size,
-		   true);
-
-    namedWindow("camera");
   }
 
 };

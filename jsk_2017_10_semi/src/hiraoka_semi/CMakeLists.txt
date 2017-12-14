@@ -18,6 +18,8 @@ find_package(catkin REQUIRED COMPONENTS
   dynamic_reconfigure
   cv_bridge
   image_transport
+  actionlib_msgs
+  actionlib
 )
 
 ## System dependencies are found with CMake's conventions
@@ -83,6 +85,12 @@ add_service_files(
 #   Action2.action
 # )
 
+add_action_files(
+  FILES
+  background_subtractor2.action
+  )
+
+
 ## Generate added messages and services with any dependencies listed here
 # generate_messages(
 #   DEPENDENCIES
@@ -94,6 +102,7 @@ generate_messages(
   std_msgs
   geometry_msgs
   opencv_apps
+  actionlib_msgs
   )
 
 ################################################
@@ -134,6 +143,7 @@ catkin_package(
 #  LIBRARIES hiraoka_semi
 #  CATKIN_DEPENDS cv_bridge image_transport
 #  DEPENDS system_lib
+# CATKIN_DEPENDS actionlib_msgs
 )
 
 ###########
@@ -190,6 +200,12 @@ target_link_libraries(encoding_changer ${catkin_LIBRARIES} ${OpenCV_LIBRARIES})
 
 add_executable(myvideo_recorder src/myvideo_recorder.cpp)
 target_link_libraries(myvideo_recorder ${catkin_LIBRARIES} ${OpenCV_LIBRARIES})
+
+add_executable(background_subtractor2 src/background_subtractor2.cpp)
+target_link_libraries(background_subtractor2 ${catkin_LIBRARIES} ${OpenCV_LIBRARIES})
+
+add_executable(countnonzero src/countnonzero.cpp)
+target_link_libraries(countnonzero ${catkin_LIBRARIES} ${OpenCV_LIBRARIES})
 
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the

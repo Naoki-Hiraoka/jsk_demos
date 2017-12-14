@@ -1,26 +1,47 @@
 <launch>
   <arg name="camera_topic" />
+  <arg name="depth_topic" />
   <arg name="debug" default="false"/>
   
-  <node pkg="hiraoka_semi" type="background_subtractor" name="background_subtractor"/>
+  <node pkg="hiraoka_semi" type="background_subtractor2" name="background_subtractor2_rgb">
+    <remap from="image" to="$(arg camera_topic)"/>
+  </node>
 
-  <node pkg="hiraoka_semi" type="background_subtractor" name="background_subtractor_depth"/>
+  <node pkg="hiraoka_semi" type="background_subtractor2" name="background_subtractor2_depth">
+    <remap from="image" to="$(arg depth_topic)"/>
+  </node>
   
-  <node pkg="image_view" type="image_view" name="background_subtractor_view" >
-      <remap from="image" to="background_subtractor/output" />
+  <node pkg="image_view" type="image_view" name="background_subtractor_view_rgb" >
+      <remap from="image" to="background_subtractor2_rgb/output" />
   </node>
 
-  <node name="bounding_object_mask_image" pkg="jsk_perception" type="bounding_object_mask_image">
-    <remap from="~input" to="background_subtractor/output" />
+  <node pkg="image_view" type="image_view" name="background_subtractor_view_depth" >
+      <remap from="image" to="background_subtractor2_depth/output" />
   </node>
 
-  <node name="bounding_rect_mask_image" pkg="jsk_perception" type="bounding_rect_mask_image">
-    <remap from="~input" to="bounding_object_mask_image/output" />
+  <node pkg="jsk_perception" type="bounding_object_mask_image" name="bounding_object_mask_image_rgb">
+    <remap from="~input" to="background_subtractor2_rgb/output" />
+  </node>
+
+  <node pkg="jsk_perception" type="bounding_object_mask_image" name="bounding_object_mask_image_depth">
+    <remap from="~input" to="background_subtractor2_depth/output" />
+  </node>
+
+  <node pkg="image_view" type="image_view" name="bounding_object_mask_image_depth_view">
+    <remap from="image" to="bounding_object_mask_image_depth/output"/>
+  </node>
+  
+  <node pkg="jsk_perception" type="bounding_rect_mask_image" name="bounding_rect_mask_image_rgb">
+    <remap from="~input" to="bounding_object_mask_image_rgb/output" />
+  </node>
+
+  <node pkg="jsk_perception" type="bounding_rect_mask_image" name="bounding_rect_mask_image_depth">
+    <remap from="~input" to="bounding_object_mask_image_depth/output" />
   </node>
 	      
-  <node name="rect_mask_sample" pkg="jsk_perception" type="apply_mask_image" respawn="true">
+  <node pkg="jsk_perception" type="apply_mask_image" name="apply_mask_image_rgb" respawn="true">
     <remap from="~input" to="$(arg camera_topic)"/>
-    <remap from="~input/mask" to="bounding_rect_mask_image/output" />
+    <remap from="~input/mask" to="bounding_rect_mask_image_rgb/output" />
     <rosparam>
       clip: false
       approximate_sync: true
@@ -28,12 +49,20 @@
     </rosparam>
   </node>
 
-  <node name="rect_mask_sample_image" pkg="image_view" type="image_view">
-    <remap from="image" to="rect_mask_sample/output" />
+  <node pkg="image_view" type="image_view" name="apply_mask_image_rgb_view">
+    <remap from="image" to="apply_mask_image_rgb/output" />
   </node>
 
-  <node name="mask_image_to_rect" pkg="jsk_perception" type="mask_image_to_rect" respawn="true">
-    <remap from="~input" to="bounding_rect_mask_image/output" />
+  <node pkg="jsk_perception" type="mask_image_to_rect" respawn="true" name="mask_image_to_rect_rgb">
+    <remap from="~input" to="bounding_rect_mask_image_rgb/output" />
   </node>
 
+  <node pkg="hiraoka_semi" type="countnonzero" name="countnonzero_rgb">
+    <remap from="image" to="bounding_rect_mask_image_rgb/output"/>
+  </node>
+
+  <node pkg="hiraoka_semi" type="countnonzero" name="countnonzero_depth">
+    <remap from="image" to="bounding_rect_mask_image_depth/output"/>
+  </node>
+  
 </launch>

@@ -1,127 +1,149 @@
 #!/usr/bin/env roseus
 
 (ros::load-ros-manifest "roseus")
-;;(ros::roseus "main")
-(load "package://pr2eus/pr2-interface.l")
-(pr2-init)
+(ros::roseus "main")
 
 (setq debug (ros::get-param "~debug"))
+(setq move (ros::get-param "~move"))
 
 (ros::load-ros-manifest "hiraoka_semi")
 (ros::load-ros-manifest "dynamic_reconfigure")
-(unless debug (load "package://hiraoka_semi/euslisp/tweet_sender.l"))
-
-(load "package://jsk_maps/src/eng2-scene.l")
-(setq *scene* (make-eng2-scene))
-;;掲示板を追加
-(setq *panel* (make-cube 3000 100 1500 :name "/eng2/7f/notice-board"))
-(send *panel* :move-to (make-coords :pos #F(2500 -26000 31000)) :world)
-(send *panel* :set-color :green)
-(objects (list *pr2* *scene* *panel*))
-
+(ros::load-ros-manifest "jsk_recognition_msgs")
 (unless debug
+  (load "package://hiraoka_semi/euslisp/tweet_sender.l"))
+(when (and (not debug) move)
+  (load "package://pr2eus/pr2-interface.l")
+  (pr2-init)
+  (load "package://jsk_maps/src/eng2-scene.l")
+  (setq *scene* (make-eng2-scene))
+  ;;掲示板を追加
+  (setq *panel* (make-cube 3000 100 1500 :name "/eng2/7f/notice-board"))
+  (send *panel* :move-to (make-coords :pos #F(2500 -26000 31000)) :world)
+  (send *panel* :set-color :green)
+  (objects (list *pr2* *scene* *panel*))
+)
+
+
+(when (and (not debug) move)
+   ;;掲示板の前まで移動
   (pr2-tuckarm-pose)
   (send *pr2* :move-to (send (send *scene* :spot "init-spot") :worldcoords) :world)
   (send *irtviewer* :look-all *pr2*)
-  ;; (send *ri* :move-to (send *pr2* :worldcoords) :frame-id "eng2")
+  (send *ri* :move-to (send *pr2* :worldcoords) :frame-id "eng2")
 
-  ;; ;;掲示板の前まで移動
-  ;; (send *pr2* :move-to (make-coords :pos #f(-1000 5000 30002)) :world)
-  ;; ;;下の行は後でコメント解除すること
-  ;; ;;(send *pr2* :move-to (send (send (send *scene* :spot "/eng2/7f/before-elevator") :copy-worldcoords) :orient pi/2 :z) :world)
-  ;; (send *irtviewer* :look-all *pr2*)
-  ;; (x::window-main-one)
-  ;; (send *ri* :move-to (send *pr2* :worldcoords) :frame-id "eng2")
+  (send *pr2* :move-to (make-coords :pos #f(-1000 5000 30002)) :world)
+  ;;(send *pr2* :move-to (send (send (send *scene* :spot "/eng2/7f/before-elevator") :copy-worldcoords) :orient pi/2 :z) :world)
+  (send *irtviewer* :look-all *pr2*)
+  (x::window-main-one)
+  (send *ri* :move-to (send *pr2* :worldcoords) :frame-id "eng2")
 )
 
 (ros::rate 10)
 
-;;動画を撮る
-(setq file_name (ros::get-param "~file_name"))
-(setq topic_name (ros::get-param "~topic_name"))
-(setq req (instance hiraoka_semi::video_recorderrequest :init))
-(send req :filename file_name)
-(send req :topicname topic_name)
-(send req :start t)
-(ros::ros-info "video start")
-(ros::wait-for-service "/hiraoka_semi/video_recorder")
-(ros::service-call "/hiraoka_semi/video_recorder" req)
-(unix::sleep 20)
-(send req :start nil)
-(send req :stop t)
-(ros::ros-info "video stop")
-(ros::service-call "/hiraoka_semi/video_recorder" req)
+;;cameraが起動するのをまつ
+(when debug
+  (unix::sleep 5))
 
-;;ココで手動でポスターを一個追加する
-(ros::ros-info "waiting")
-(unix::sleep 10)
+(while t
+  (tagbody
+   :start
+   
+   ;;beforeを記録する
+   (ros::ros-info "start record")  
+   (setq *c_rgb* (instance ros::simple-action-client :init "/hiraoka_semi/background_subtractor2_rgb" hiraoka_semi::background_subtractor2Action))
+   (setq goal (instance hiraoka_semi::background_subtractor2Actiongoal :init))
+   (send goal :goal :frames 200)
+   (send *c_rgb* :wait-for-server)
+   (send *c_rgb* :send-goal goal)
 
-;;差分を取らせる
-(setq req (instance dynamic_reconfigure::Reconfigurerequest :init))
-(send req :config :strs (list (instance dynamic_reconfigure::StrParameter :init :name "filename" :value file_name) (instance dynamic_reconfigure::StrParameter :init :name "topicname" :value topic_name)))   
-(ros::wait-for-service "/hiraoka_semi/background_subtractor/set_parameters")
-(ros::service-call "/hiraoka_semi/background_subtractor/set_parameters" req)
+   (setq *c_depth* (instance ros::simple-action-client :init "/hiraoka_semi/background_subtractor2_depth" hiraoka_semi::background_subtractor2Action))
+   (setq goal (instance hiraoka_semi::background_subtractor2Actiongoal :init))
+   (send goal :goal :frames 200)
+   (send *c_depth* :wait-for-server)
+   (send *c_depth* :send-goal goal)
+   
+   (send *c_rgb* :wait-for-result)
+   (send *c_depth* :wait-for-result)
+   (if (and (send (send *c_rgb* :get-result) :result) (send (send *c_depth* :get-result) :result))
+       (ros::ros-info "record finished")
+     (progn (ros::ros-info "record failed")
+	    (go :start)))
+   ;;ココで手動でポスターを一個追加する
+   (ros::ros-info "waiting for new paper")
 
-;;差分の位置を受信する
-(setq polygon (instance geometry_msgs::PolygonStamped :init))
-(ros::subscribe "/hiraoka_semi/mask_image_to_rect/output" geometry_msgs::PolygonStamped #'(lambda (msg) (setq polygon msg) (setq time-now (send msg :header :stamp))))
-(setq time-target (ros::time-now))
-(send time-target :sec (+ (send time-target :sec) 3))
-(setq time-now (instance ros::time :init))
-(while (ros::time< time-now time-target)
-  (ros::spin-once)
-  (ros::sleep)
-  )
-(ros::ros-info "diff was received")
-(ros::unsubscribe "/hiraoka_semi/mask_image_to_rect/output") 
+   ;;新しい掲示を検出するまで待機。掲示を貼っている間は反応しないように。 10コマ連続
+   (setq rgb_change_ok 0)
+   (setq depth_change_ok 0)
+   (ros::subscribe "/hiraoka_semi/countnonzero_rgb/output" std_msgs::Float64
+		   #'(lambda (msg) (if (> (send msg :data) 0.01)
+				       (incf rgb_change_ok)
+				     (setq rgb_change_ok 0))))
+   (ros::subscribe "/hiraoka_semi/countnonzero_depth/output" std_msgs::Float64
+		   #'(lambda (msg) (if (< (send msg :data) 0.01)
+				       (incf depth_change_ok)
+				     (setq depth_change_ok 0))))
+   (while (not (and (> rgb_change_ok 10) (> depth_change_ok 10)))
+     (ros::sleep)
+     (ros::spin-once))
 
-;;rotated-rectに変換
-(setq pointul (car (send polygon :polygon :points)))
-(setq pointdr (cadr (send polygon :polygon :points)))
-(setq change (instance opencv_apps::rotatedrect :init))
-(send change :angle 0.0)
-(send change :center :x (/ (+ (send pointul :x) (send pointdr :x)) 2.0))
-(send change :center :y (/ (+ (send pointul :y) (send pointdr :y)) 2.0))
-(send change :size :width (- (send pointdr :x) (send pointul :x)))
-(send change :size :height (- (send pointdr :y) (send pointul :y)))
+   ;;差分の位置を受信する
+   (ros::subscribe "/hiraoka_semi/mask_image_to_rect_rgb/output" jsk_recognition_msgs::RectArray #'(lambda (msg) (setq rect (car (send msg :rects))) (setq time-now (send msg :header :stamp))))
+   (setq time-target (ros::time-now))
+   (send time-target :sec (+ (send time-target :sec) 3))
+   (setq time-now (instance ros::time :init))
+   (while (ros::time< time-now time-target)
+     (ros::spin-once)
+     (ros::sleep)
+     )
+   (ros::ros-info "diff was received")
+   (ros::unsubscribe "/hiraoka_semi/mask_image_to_rect_rgb/output") 
 
-;;差分を保存する
-;;ターゲットの位置まで近づいて、新たに写真を撮ってとできればいいなあ
-(setq req (instance hiraoka_semi::image_part_saverRequest :init))
-(setq file_name (ros::get-param "~save_name"))
-(send req :file_name file_name)
-(send req :parts (list change))
-(ros::service-call "/hiraoka_semi/image_part_saver" req)
-(unix::sleep 5);;保存完了まで
+   ;;rotated-rectに変換(rectarrayのx,yは左上の点)
+   (setq change (instance opencv_apps::rotatedrect :init))
+   (send change :angle 0.0)
+   (send change :center :x (+ (send rect :x) (/ (send rect :width) 2)))
+   (send change :center :y (+ (send rect :y) (/ (send rect :height) 2)))
+   (send change :size :width (send rect :width))
+   (send change :size :height (send rect :height))
+   
+   ;;差分を保存する
+   (setq req (instance hiraoka_semi::image_part_saverRequest :init))
+   (setq file_name (ros::get-param "~save_name"))
+   (send req :file_name file_name)
+   (send req :parts (list change))
+   (ros::service-call "/hiraoka_semi/image_part_saver" req)
+   (unix::sleep 5);;保存完了まで
 
-;;画像を送信する
-(setq dynamic_msg (instance dynamic_reconfigure::ReconfigureRequest :init))
-(send dynamic_msg :config :strs (list (instance dynamic_reconfigure::StrParameter :init :name "file_name" :value file_name)))
-(ros::service-call "/hiraoka_semi/change_image_publisher/set_parameters" dynamic_msg)
-(setq time-target (ros::time-now))
-(send time-target :sec (+ (send time-target :sec) 1))
-(ros::ros-info "change image was published")  
+   ;;画像を送信する
+   (setq dynamic_msg (instance dynamic_reconfigure::ReconfigureRequest :init))
+   (send dynamic_msg :config :strs (list (instance dynamic_reconfigure::StrParameter :init :name "file_name" :value file_name)))
+   (ros::service-call "/hiraoka_semi/change_image_publisher/set_parameters" dynamic_msg)
+   (setq time-target (ros::time-now))
+   (send time-target :sec (+ (send time-target :sec) 1))
+   (ros::ros-info "change image was published")  
 
-;;twitterに送信
-(unless debug
-  (ros::subscribe "/hiraoka_semi/change_image_publisher/output" sensor_msgs::image #'(lambda (msg) (setq time-now (send msg :header :stamp))))
-  (setq time-now (instance ros::time :init))
-  (while (ros::time< time-now time-target)
-  (ros::spin-once)
-  (ros::sleep)
-  )
-  (ros::unsubscribe "/hiraoka_semi/change_image_publisher/output") 
-  (tweet-string "hello,jsk" :with-image "/hiraoka_semi/change_image_publisher/output")
-  )
+   ;;twitterに送信
+   (unless debug
+     (ros::subscribe "/hiraoka_semi/change_image_publisher/output" sensor_msgs::image #'(lambda (msg) (setq time-now (send msg :header :stamp))))
+     (setq time-now (instance ros::time :init))
+     (while (ros::time< time-now time-target)
+       (ros::spin-once)
+       (ros::sleep)
+       )
+     (ros::unsubscribe "/hiraoka_semi/change_image_publisher/output") 
+     (tweet-string "hello,jsk" :with-image "/hiraoka_semi/change_image_publisher/output")
+     )
 
+   ;;(return)
+   ))
 
-;; (unless debug  
-;;   ;;帰ってくる
-;;   (send *pr2* :move-to (send (send *scene* :spot "init-spot") :worldcoords) :world)
-;;   (send *irtviewer* :look-all *pr2*)
-;;   (x::window-main-one)
-;;   (send *ri* :move-to (send *pr2* :worldcoords) :frame-id "eng2")
-;; )
+(when (and (not debug) move)  
+  ;;帰ってくる
+  (send *pr2* :move-to (send (send *scene* :spot "init-spot") :worldcoords) :world)
+  (send *irtviewer* :look-all *pr2*)
+  (x::window-main-one)
+  (send *ri* :move-to (send *pr2* :worldcoords) :frame-id "eng2")
+)
 
 (do-until-key
  (ros::sleep))

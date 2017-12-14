@@ -1,0 +1,9 @@
+# Define the goal
+uint32 frames  
+---
+# Define the result
+bool result
+#uint32 result
+---
+# Define a feedback message
+uint32 rest

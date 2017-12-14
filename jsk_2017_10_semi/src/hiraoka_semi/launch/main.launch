@@ -1,24 +1,30 @@
 <launch>
   <arg name="debug" default="false"/>
-    
+  <arg name="move" default="true"/>
+  
   <arg name="camera_topic" value="/kinect_head/rgb/image_rect_color" unless="$(arg debug)"/>
-  <arg name="camera_topic" value="/usb_cam/image_raw" if="$(arg debug)"/>
+  <arg name="camera_topic" value="/hiraoka_semi/camera/color/image_raw" if="$(arg debug)"/>
+
+  <arg name="depth_topic" value="/kinect_head/depth_registered/image_raw" unless="$(arg debug)"/>
+  <arg name="depth_topic" value="/hiraoka_semi/camera/depth/image_raw" if="$(arg debug)"/>
   <!-- <arg name="camera_topic" value="/kinect_head/rgb/image_rect_color"/> -->
   
-  <group ns="hiraoka_semi">   
+  <group ns="hiraoka_semi">
+    <include file="$(find realsense_camera)/launch/r200_nodelet_default.launch" if="$(arg debug)"/>
+    
     <node pkg="image_view" type="image_view" name="image_view_camera">
       <remap from="image" to="$(arg camera_topic)"/>
     </node>
     
-    <node pkg="hiraoka_semi" type="video_recorder" name="video_recorder"/>
-    
     <include file="$(find hiraoka_semi)/launch/detect_change.launch" >
       <arg name="camera_topic" value="$(arg camera_topic)"/>
+      <arg name="depth_topic" value="$(arg depth_topic)"/>
       <arg name="debug" value="$(arg debug)"/>
     </include>
     
     <node pkg="hiraoka_semi" type="image_part_saver" name="image_part_saver">
-      <remap from="image" to="rect_mask_sample/output"/>
+      <!-- <remap from="image" to="apply_mask_image_rgb/output"/> -->
+      <remap from="image" to="$(arg camera_topic)"/>
     </node>
     <node name="change_image_publisher" pkg="jsk_perception" type="image_publisher.py">
       <rosparam subst_value="true">
@@ -27,14 +33,13 @@
       </rosparam>
     </node>
   </group>
-
-  <node pkg="usb_cam" type="usb_cam_node" name="usb_cam" if="$(arg debug)"/>
   
   <node pkg="hiraoka_semi" type="main.l" name="main">
     <param name="~file_name" type="string" value="$(find hiraoka_semi)/image/head_video.avi"/>
     <param name="~save_name" type="string" value="$(find hiraoka_semi)/image/change.jpg"/>
     <param name="~topic_name" type="string" value="$(arg camera_topic)"/>
     <param name="~debug" type="bool" value="$(arg debug)"/>
+    <param name="~move" type="bool" value="$(arg move)"/>
   </node>  
 
 </launch>

@@ -29,7 +29,7 @@ class MyCvPkg{
     for(int i=0;i<1/*req.parts.size()*/;i++){
       auto part=req.parts[i];
       if(abs(part.angle) < 10/*deg?*/){
-	cv::imwrite(req.file_name,img(cv::Range{(int)(part.center.y-part.size.height/2),(int)(part.center.y+part.size.height/2)},cv::Range{(int)(part.center.x-part.size.width/2),(int)(part.center.x+part.size.width/2)}));
+	cv::imwrite(req.file_name,img(cv::Range{max((int)(part.center.y-part.size.height/2),0),min((int)(part.center.y+part.size.height/2),img.size().height)},cv::Range{max((int)(part.center.x-part.size.width/2),0),min((int)(part.center.x+part.size.width/2),img.size().width)}));
       }else{
 	float angle = part.angle;
 	//回し過ぎを防ぐ
