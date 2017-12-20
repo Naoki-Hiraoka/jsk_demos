@@ -1,5 +1,7 @@
 #!/usr/bin/env roseus
 
+;;rostopic pub -1 /hiraoka_semi/go_back std_msgs/Bool True　で終了
+
 (ros::load-ros-manifest "roseus")
 (ros::roseus "main")
 
@@ -23,14 +25,20 @@
   (objects (list *pr2* *scene* *panel*))
 )
 
+;;帰還指示を受け取るサブスクライバ
+(setq go-back nil)
+(ros::subscribe "/hiraoka_semi/go_back" std_msgs::bool #'(lambda (msg) (setq go-back (send msg :data))))
+
+;;tweet回数
+(setq *tweetnum* 0)
 
 (when (and (not debug) move)
    ;;掲示板の前まで移動
   (pr2-tuckarm-pose)
-  (send *pr2* :move-to (send (send *scene* :spot "init-spot") :worldcoords) :world)
+  ;;(send *pr2* :move-to (send (send *scene* :spot "init-spot") :worldcoords) :world)
   (send *irtviewer* :look-all *pr2*)
-  (send *ri* :move-to (send *pr2* :worldcoords) :frame-id "eng2")
-
+  ;;(send *ri* :move-to (send *pr2* :worldcoords) :frame-id "eng2")
+  ;;廊下
   (send *pr2* :move-to (make-coords :pos #f(-1000 5000 30002)) :world)
   ;;(send *pr2* :move-to (send (send (send *scene* :spot "/eng2/7f/before-elevator") :copy-worldcoords) :orient pi/2 :z) :world)
   (send *irtviewer* :look-all *pr2*)
@@ -43,22 +51,23 @@
 ;;cameraが起動するのをまつ
 (when debug
   (unix::sleep 5))
-
+(block :mainloop
 (while t
   (tagbody
    :start
    
    ;;beforeを記録する
-   (ros::ros-info "start record")  
+   (ros::ros-info "start record")
+   (speak-jp "記録開始")
    (setq *c_rgb* (instance ros::simple-action-client :init "/hiraoka_semi/background_subtractor2_rgb" hiraoka_semi::background_subtractor2Action))
    (setq goal (instance hiraoka_semi::background_subtractor2Actiongoal :init))
-   (send goal :goal :frames 200)
+   (send goal :goal :frames 100)
    (send *c_rgb* :wait-for-server)
    (send *c_rgb* :send-goal goal)
 
    (setq *c_depth* (instance ros::simple-action-client :init "/hiraoka_semi/background_subtractor2_depth" hiraoka_semi::background_subtractor2Action))
    (setq goal (instance hiraoka_semi::background_subtractor2Actiongoal :init))
-   (send goal :goal :frames 200)
+   (send goal :goal :frames 100)
    (send *c_depth* :wait-for-server)
    (send *c_depth* :send-goal goal)
    
@@ -68,6 +77,7 @@
        (ros::ros-info "record finished")
      (progn (ros::ros-info "record failed")
 	    (go :start)))
+   (speak-jp "記録完了。新しい掲示を待っています")
    ;;ココで手動でポスターを一個追加する
    (ros::ros-info "waiting for new paper")
 
@@ -84,8 +94,13 @@
 				     (setq depth_change_ok 0))))
    (while (not (and (> rgb_change_ok 10) (> depth_change_ok 10)))
      (ros::sleep)
-     (ros::spin-once))
+     (ros::spin-once)
+     ;;帰還指示は出ていないか
+     (when go-back
+       (return-from :mainloop))
+     )
 
+   (speak-jp "新しい掲示を確認しました。tweetします。")
    ;;差分の位置を受信する
    (ros::subscribe "/hiraoka_semi/mask_image_to_rect_rgb/output" jsk_recognition_msgs::RectArray #'(lambda (msg) (setq rect (car (send msg :rects))) (setq time-now (send msg :header :stamp))))
    (setq time-target (ros::time-now))
@@ -112,6 +127,7 @@
    (send req :file_name file_name)
    (send req :parts (list change))
    (ros::service-call "/hiraoka_semi/image_part_saver" req)
+
    (unix::sleep 5);;保存完了まで
 
    ;;画像を送信する
@@ -130,12 +146,22 @@
        (ros::spin-once)
        (ros::sleep)
        )
-     (ros::unsubscribe "/hiraoka_semi/change_image_publisher/output") 
-     (tweet-string "hello,jsk" :with-image "/hiraoka_semi/change_image_publisher/output")
+     (ros::unsubscribe "/hiraoka_semi/change_image_publisher/output")
+     (incf *tweetnum*)
+     (setq message (concatenate string "newmessage" (string *tweetnum*)))
+     (tweet-string #|"hello,jsk"|#message :with-image "/hiraoka_semi/change_image_publisher/output")
+     (speak-jp "tweetしました。")
      )
 
-   ;;(return)
+   ;;帰還指示は出ていないか
+   (ros::spin-once)
+   (when go-back
+     (return-from :mainloop))
+   
    ))
+);;mainloop
+
+(ros::ros-info "go_back command was received")
 
 (when (and (not debug) move)  
   ;;帰ってくる
