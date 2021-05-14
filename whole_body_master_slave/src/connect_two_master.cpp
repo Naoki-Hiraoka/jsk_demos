@@ -201,9 +201,13 @@ void slave_side_process(int argc, char** argv) {
     for(int i=0; i<ee_names.size(); i++){
         std::string topic = "slave_"+ee_names[i]+"_wrench";
         ROS_INFO_STREAM(pname << " register subscriber " << topic);
+	// We want to use unreliable. But slave wrenches cannot be received if `ros::TransportHints().unreliable().reliable()`. We don't know why. We tempolary use `ros::TransportHints().reliable().unreliable()`.
+        // slaveEEWrenches_sub.push_back( n.subscribe<geometry_msgs::WrenchStamped>(topic, 1,
+        //     boost::bind(onEEWrenchCB, _1, &shmaddr->slaveEEWrenches[i]),
+        //     ros::VoidConstPtr(), ros::TransportHints().unreliable().reliable().maxDatagramSize(1000).tcpNoDelay()));
         slaveEEWrenches_sub.push_back( n.subscribe<geometry_msgs::WrenchStamped>(topic, 1,
             boost::bind(onEEWrenchCB, _1, &shmaddr->slaveEEWrenches[i]),
-            ros::VoidConstPtr(), ros::TransportHints().unreliable().reliable().tcpNoDelay()));
+            ros::VoidConstPtr(), ros::TransportHints().tcpNoDelay()));
     }
     for(int i=0; i<tgt_names.size(); i++){
         std::string topic = "slave_"+tgt_names[i]+"_pose";
